@@ -1,3 +1,4 @@
 # project1
 두중
-hello-world
+헬로월드
+응용컴퓨터프로그래밍
