@@ -1,0 +1,76 @@
+---
+title: "비모수적 함수추정 중간퀴즈"
+author: "Min-Jun Son"
+date: "4/17/2021"
+output: word_document
+---
+##1. 각각의 최소제곱 추정량이 아래와 같이 얻어짐을 확인하시오.
+$$\hat\alpha=(\hat\alpha_1,\hat\alpha_2)=(y_1,y_2-y_1) ~and    ~\hat\beta=(\hat\beta_1,\hat\beta_2)=(y_1,y_2)$$
+```{r ex1}
+#1
+set.seed(1)
+y<-rnorm(2)
+P<-matrix(c(1,1,0,1),nrow=2)
+B<-matrix(c(1,0,0,1),nrow=2)
+y
+ahat<-lm(y~P-1)$coefficient
+bhat<-lm(y~B-1)$coefficient
+cbind(ahat)
+cbind(c(y[1],y[2]-y[1]))
+cbind(bhat)
+cbind(c(y[1],y[2]))
+```
+
+##2. 
+$\hat y=P\hat\alpha=B\hat\beta=y$임을 보이시오.
+```{r ex2}
+cbind(y)
+P%*%ahat
+B%*%bhat
+```
+
+##3, 4
+```{r ex3 ex4}
+lm_cda=function(y,P,max_iter=1000,epsilon=1e-05)
+{
+  n=length(y)
+  J=ncol(P)
+  alpha=rep(0,J)
+  fitted_values=P%*%alpha
+  residuals=y-fitted_values
+  Ralpha_old=Raplha_new=0.5*sum(residuals^2)
+
+  for(r in 1:max_iter)
+  {
+    for(j in 1:J)
+    {
+      partial_residuals=residuals+alpha[j]*P[,j]
+      alpha[j]=sum(partial_residuals*P[,j])/sum(P[,j]^2)
+      residuals=partial_residuals-alpha[j]*P[,j]
+    }
+    Ralpha_new=0.5*sum(residuals^2)
+    if(abs(Ralpha_new-Ralpha_old)<epsilon)
+    break
+    Ralpha_old=Ralpha_new
+  }
+  fitted_values=y-residuals
+  Results=list()
+ Results$y=y
+ Results$P=P
+ Results$alpha=alpha
+ Results$fitted_values=fitted_values
+ Results$Ralpha=Ralpha_new
+ Results$number_iteration=r
+ return(Results)
+}
+lm_cda(y,P)$alpha
+lm_cda(y,B)$alpha
+```
+$\alpha$=(-0.6248716,0.8085149)    ,$\beta$=(=0.6264538,0.1836433)으로 추정되었다.
+
+##5
+```{r ex5}
+lm_cda(y,P)$number_iteration
+lm_cda(y,B)$number_iteration
+```
+4의 반복수가 3의반복수 보다 더 적기 때문에 cda기준으로 4가 더 효율적으로 얻어진 추정량이라 할 수 있다. 
